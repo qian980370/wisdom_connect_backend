@@ -1,0 +1,36 @@
+server:
+  port: 9090
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://erictest.mysql.database.azure.com:3306/wisdom_connect_database?useSSL=true
+    username: eric
+    password: Zzq980730
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+  mail:
+    host: smtp.gmail.com
+    username: wisdomConnectOfficial@gmail.com
+    password: 15853198730CQC
+    protocol: smtp
+    properties.mail.smtp.auth: true
+    properties.mail.smtp.port: 465
+    properties.mail.display.sendmail: Javen
+    properties.mail.display.sendname: Spring Boot Guide Email
+    properties.mail.smtp.starttls.enable: true
+    properties.mail.smtp.starttls.required: true
+    properties.mail.smtp.ssl.enable: true
+    form: wisdomConnectOfficial@gmail.com
+    default-encoding: utf-8
+files:
+  upload:
+    path: D:/2022s1/wisdomConnect/wisdom_connect_project/files/ #ziqian
+#    path: C:\Users\86139\IdeaProjects\wisdom_connect_project/files/  #yifei
+#    path: C:\Users\HUS\IdeaProjects\wisdom-connect/files/  #sibo
+#    path: E:/Intellij/wisdom_connect_project/files/ #lizhuo
+#    path: /Users/mac/IdeaProjects/wisdom_connect_project/files/ #keren
+#    path: E:\IdeaProjects\8715git\wisdom_connect_project/files/ #haobin
+  download:
+    path: http://localhost:9090/file/download/
