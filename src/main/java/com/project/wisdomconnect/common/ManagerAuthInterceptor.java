@@ -27,6 +27,7 @@ public class ManagerAuthInterceptor implements HandlerInterceptor {
         String token = request.getHeader("token");
 
         if (StrUtil.isBlank(token)) {
+            System.out.println(Constants.CODE_301_MESSAGE + "manager auth not pass 1");
             throw new ServiceException(Constants.CODE_301, Constants.CODE_301_MESSAGE);
         }
 
@@ -34,6 +35,7 @@ public class ManagerAuthInterceptor implements HandlerInterceptor {
         Integer userId = Integer.valueOf(JWT.decode(token).getAudience().get(0));
         User user = userMapper.selectById(userId);
         if (user == null) {
+            System.out.println(Constants.CODE_301_MESSAGE + "manager auth not pass 2");
             throw new ServiceException(Constants.CODE_301, Constants.CODE_301_MESSAGE);
         }
         // verify token
@@ -41,10 +43,12 @@ public class ManagerAuthInterceptor implements HandlerInterceptor {
         try {
             jwtVerifier.verify(token);
         } catch (Exception e) {
+            System.out.println(Constants.CODE_301_MESSAGE + "manager auth not pass 3");
             throw new ServiceException(Constants.CODE_301, Constants.CODE_301_MESSAGE);
         }
 
         if (!Objects.equals(user.getRole(), "manager")){
+            System.out.println(Constants.CODE_301_MESSAGE + "manager auth not pass 4");
             throw new ServiceException(Constants.CODE_401, Constants.CODE_401_MESSAGE);
         }
         return true;
