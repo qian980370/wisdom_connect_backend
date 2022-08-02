@@ -33,4 +33,4 @@ files:
 #    path: /Users/mac/IdeaProjects/wisdom_connect_project/files/ #keren
 #    path: E:\IdeaProjects\8715git\wisdom_connect_project/files/ #haobin
   download:
-    path: http://localhost:9090/file/download/
+    path: http://ericbackend.azurewebsites.net/file/download/
