@@ -78,7 +78,7 @@ public class FileController {
         File jarF = h.getSource();
         //build path to upload on server
         String dirPath = jarF.getParentFile().toString()+"/upload/";
-        System.out.println(dirPath);
+        System.out.println("test" + dirPath);
         File fileMkdir = new File(dirPath);
         if (!fileMkdir.exists()){
             fileMkdir.mkdir();
