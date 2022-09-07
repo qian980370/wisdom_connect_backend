@@ -73,25 +73,25 @@ public class FileController {
         long size = file.getSize() / 1024;
 
 
-        //after packaging
-        ApplicationHome h = new ApplicationHome(getClass());
-        File jarF = h.getSource();
-        //build path to upload on server
-        String dirPath = jarF.getParentFile().toString()+"/upload/";
-        System.out.println("test" + dirPath);
-        File fileMkdir = new File(dirPath);
-        if (!fileMkdir.exists()){
-            fileMkdir.mkdir();
-        }
-
-//        // Store file into disk
-//        // ParentFile is used to check store directory
-//        File uploadParentFolder = new File(fileUploadPath);
-//        // Check whether the file directory exists. If not, create a new directory
-//        if(!uploadParentFolder.exists()){
-//            // If not, create a new directory
-//            uploadParentFolder.mkdirs();
+//        //after packaging
+//        ApplicationHome h = new ApplicationHome(getClass());
+//        File jarF = h.getSource();
+//        //build path to upload on server
+//        String dirPath = jarF.getParentFile().toString()+"/upload/";
+//        System.out.println("test" + dirPath);
+//        File fileMkdir = new File(dirPath);
+//        if (!fileMkdir.exists()){
+//            fileMkdir.mkdir();
 //        }
+
+        // Store file into disk
+        // ParentFile is used to check store directory
+        File uploadParentFolder = new File(fileUploadPath);
+        // Check whether the file directory exists. If not, create a new directory
+        if(!uploadParentFolder.exists()){
+            // If not, create a new directory
+            uploadParentFolder.mkdirs();
+        }
 
 
         // set unique uid for file
@@ -100,7 +100,7 @@ public class FileController {
         String fileUuid = uuid + StrUtil.DOT + type;
         String fileUrl;
         // build upload file
-        File uploadFile = new File(fileMkdir.getPath() + "\\" + fileUuid);
+        File uploadFile = new File(fileUploadPath + fileUuid);
 
 
         // build md5 code for upload file
@@ -139,20 +139,20 @@ public class FileController {
         Files file = fileMapper.selectOne(wrapper);
         File uploadFile = null;
 
-        //after packaging
-        ApplicationHome h = new ApplicationHome(getClass());
-        File jarF = h.getSource();
-        //build path to upload on server
-        String dirPath = jarF.getParentFile().toString()+"/upload/";
-        File fileMkdir = new File(dirPath);
-        if (!fileMkdir.exists()){
-            fileMkdir.mkdir();
-        }
+//        //after packaging
+//        ApplicationHome h = new ApplicationHome(getClass());
+//        File jarF = h.getSource();
+//        //build path to upload on server
+//        String dirPath = jarF.getParentFile().toString()+"/upload/";
+//        File fileMkdir = new File(dirPath);
+//        if (!fileMkdir.exists()){
+//            fileMkdir.mkdir();
+//        }
 
         if(Objects.equals(file.getEnable(), "0")){
             uploadFile = new File(fileUploadPath + disableImg);
         }else {
-            uploadFile = new File(fileMkdir.getPath() + "\\" + fileUuid);
+            uploadFile = new File(fileUploadPath + fileUuid);
         }
 
 

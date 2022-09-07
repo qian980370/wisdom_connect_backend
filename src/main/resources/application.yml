@@ -26,11 +26,12 @@ spring:
     default-encoding: utf-8
 files:
   upload:
-    path: http://ericbackend.azurewebsites.net/files/ #ziqian
+    #path: http://ericbackend.azurewebsites.net/files/ #ziqian
+    path: C:\home\site\files\
 #    path: C:\Users\86139\IdeaProjects\wisdom_connect_project/files/  #yifei
 #    path: C:\Users\HUS\IdeaProjects\wisdom-connect/files/  #sibo
 #    path: E:/Intellij/wisdom_connect_project/files/ #lizhuo
 #    path: /Users/mac/IdeaProjects/wisdom_connect_project/files/ #keren
 #    path: E:\IdeaProjects\8715git\wisdom_connect_project/files/ #haobin
   download:
-    path: http://localhost:9090/file/download/
+    path: http://ericbackend.azurewebsites.net/file/download/
