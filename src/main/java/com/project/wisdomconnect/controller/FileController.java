@@ -16,6 +16,7 @@ import com.project.wisdomconnect.entity.User;
 import com.project.wisdomconnect.mapper.FileMapper;
 import com.project.wisdomconnect.utils.TokenUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.system.ApplicationHome;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,14 +73,25 @@ public class FileController {
         long size = file.getSize() / 1024;
 
 
-        // Store file into disk
-        // ParentFile is used to check store directory
-        File uploadParentFolder = new File(fileUploadPath);
-        // Check whether the file directory exists. If not, create a new directory
-        if(!uploadParentFolder.exists()){
-            // If not, create a new directory
-            uploadParentFolder.mkdirs();
+        //after packaging
+        ApplicationHome h = new ApplicationHome(getClass());
+        File jarF = h.getSource();
+        //build path to upload on server
+        String dirPath = jarF.getParentFile().toString()+"/upload/";
+        System.out.println(dirPath);
+        File fileMkdir = new File(dirPath);
+        if (!fileMkdir.exists()){
+            fileMkdir.mkdir();
         }
+
+//        // Store file into disk
+//        // ParentFile is used to check store directory
+//        File uploadParentFolder = new File(fileUploadPath);
+//        // Check whether the file directory exists. If not, create a new directory
+//        if(!uploadParentFolder.exists()){
+//            // If not, create a new directory
+//            uploadParentFolder.mkdirs();
+//        }
 
 
         // set unique uid for file
@@ -88,7 +100,7 @@ public class FileController {
         String fileUuid = uuid + StrUtil.DOT + type;
         String fileUrl;
         // build upload file
-        File uploadFile = new File(fileUploadPath + fileUuid);
+        File uploadFile = new File(fileMkdir.getPath() + "\\" + fileUuid);
 
 
         // build md5 code for upload file
@@ -126,10 +138,18 @@ public class FileController {
 
         Files file = fileMapper.selectOne(wrapper);
         File uploadFile = null;
+
+        //after packaging
+        ApplicationHome h = new ApplicationHome(getClass());
+        File jarF = h.getSource();
+        //build path to upload on server
+        String dirPath = jarF.getParentFile().toString()+"/upload/";
+        File fileMkdir = new File(dirPath);
+
         if(Objects.equals(file.getEnable(), "0")){
             uploadFile = new File(fileUploadPath + disableImg);
         }else {
-            uploadFile = new File(fileUploadPath + fileUuid);
+            uploadFile = new File(fileMkdir.getPath() + "\\" + fileUuid);
         }
 
 
