@@ -148,7 +148,7 @@ public class FileController {
 //        if (!fileMkdir.exists()){
 //            fileMkdir.mkdir();
 //        }
-
+        System.out.println("download file: " + fileUploadPath + fileUuid);
         if(Objects.equals(file.getEnable(), "0")){
             uploadFile = new File(fileUploadPath + disableImg);
         }else {
