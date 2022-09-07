@@ -145,6 +145,9 @@ public class FileController {
         //build path to upload on server
         String dirPath = jarF.getParentFile().toString()+"/upload/";
         File fileMkdir = new File(dirPath);
+        if (!fileMkdir.exists()){
+            fileMkdir.mkdir();
+        }
 
         if(Objects.equals(file.getEnable(), "0")){
             uploadFile = new File(fileUploadPath + disableImg);
