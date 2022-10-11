@@ -38,6 +38,7 @@ public class ProfileController {
 
     @PostMapping("/create")
     public Result<?> save(@RequestBody Profile profile){
+        // check user's token
         User user = TokenUtils.getUser();
         User res = userMapper.selectOne(Wrappers.<User>lambdaQuery().eq(User::getId, user.getId()));
         if (res == null) {
@@ -63,16 +64,16 @@ public class ProfileController {
             LOG.error(e);
             throw new ServiceException(Constants.CODE_500, Constants.CODE_500_MESSAGE);
         }
-
+        // insert profile into database
         LambdaQueryWrapper<Profile> wrapper = Wrappers.<Profile>lambdaQuery().orderByAsc(Profile::getId);
         wrapper.like(Profile::getOwner, profile.getOwner());
         List<Profile> profileList = profileMapper.selectList(wrapper);
-        if(!Objects.equals(user.getRole(), "facility")){
+        if(!Objects.equals(user.getRole(), "facility")){ // all non-facility user could only have one profile each account
             if (profileList.size() > 1){
                 return Result.error(Constants.CODE_409, Constants.CODE_409_MESSAGE);
             }
         }else {
-            if (profileList.size() > 7){
+            if (profileList.size() > 7){ // facility user could own at most 7 profile each account
                 return Result.error(Constants.CODE_409, Constants.CODE_409_MESSAGE);
             }
         }
@@ -82,6 +83,8 @@ public class ProfileController {
     }
 
     //http://127.0.0.1:9090/user?pageNum=1&pageSize=1&query=
+
+    // get all profile which owned by current user
     @GetMapping("/page")
     public Result<?> findPage(@RequestParam(defaultValue = "1") Integer pageNum,
                               @RequestParam(defaultValue = "10") Integer pageSize,
@@ -108,14 +111,14 @@ public class ProfileController {
         profileWrapper.like(Profile::getPrivacy, 0);
 
 
-        //check block
+        //check block, if your search target has blocked you, you could not get profile information of him/her
         LambdaQueryWrapper<BlockRelationship> blockWrapper = Wrappers.<BlockRelationship>lambdaQuery().orderByAsc(BlockRelationship::getId);
         blockWrapper.like(BlockRelationship::getProfileid, profileID).or().like(BlockRelationship::getBlockid, profileID);
         List<BlockRelationship> blockResult = blockRelationshipMapper.selectList(blockWrapper);
 
         Integer target;
         boolean isFirst = true;
-
+        // check block list, build database query, query rule please check mybatis document
         for (BlockRelationship f : blockResult){
             if (!Objects.equals(f.getProfileid(), profileID)){
                 target = f.getProfileid();
@@ -131,13 +134,13 @@ public class ProfileController {
             }
         }
         List<Profile> profileCollection;
-
+        // get profile searching results
         profileCollection = profileMapper.selectList(profileWrapper);
 
         return Result.success(profileCollection);
     }
 
-
+    // manager port, which could get all profiles from database
     @GetMapping("/page-manager")
     public Result<?> findPageManager(@RequestParam(defaultValue = "1") Integer pageNum,
                               @RequestParam(defaultValue = "10") Integer pageSize,
@@ -163,7 +166,7 @@ public class ProfileController {
         return Result.success();
     }
 
-    //http://127.0.0.1:9090/user?pageNum=1&pageSize=1&query=
+    //get current profile's friends
     @GetMapping("/friendList")
     public Result<?> getFriendList(@RequestParam Integer profileID){
         if (profileID == null){
@@ -172,9 +175,10 @@ public class ProfileController {
         User user = TokenUtils.getUser();
         LambdaQueryWrapper<FriendRelationship> wrapper = Wrappers.<FriendRelationship>lambdaQuery().orderByAsc(FriendRelationship::getId);
 
+        // in friend relationship table, profileid1 and profileid2 are the profile id of friend relationship, we need to find all available relationships
         wrapper.like(FriendRelationship::getProfileid1, profileID).ne(FriendRelationship::getState, 0).or().like(FriendRelationship::getProfileid2, profileID).ne(FriendRelationship::getState, 0);
         List<FriendRelationship> result = friendRelationshipMapper.selectList(wrapper);
-
+        // after getting the relationship, we need to use profileid1 or profileid2 to find detail profile information in profile table
         LambdaQueryWrapper<Profile> profileWrapper = Wrappers.<Profile>lambdaQuery().orderByAsc(Profile::getId);
 
         boolean isFirst = true;
@@ -201,23 +205,25 @@ public class ProfileController {
         return Result.success(friendsCollection);
     }
 
-    @GetMapping("/randomFriends")
+    @GetMapping("/randomFriends") //get random friend from database
     public Result<?> getRandomFriends(@RequestParam Integer profileID){
         if (profileID == null){
             return Result.error(Constants.CODE_415, Constants.CODE_415_MESSAGE);
         }
         User user = TokenUtils.getUser();
+        // build wrapper for friend list
         LambdaQueryWrapper<FriendRelationship> wrapper = Wrappers.<FriendRelationship>lambdaQuery().orderByAsc(FriendRelationship::getId);
-
+        // get all friend of current user
         wrapper.like(FriendRelationship::getProfileid1, profileID).or().like(FriendRelationship::getProfileid2, profileID);
         List<FriendRelationship> result = friendRelationshipMapper.selectList(wrapper);
-
+        // build second wrapper for block list
         LambdaQueryWrapper<Profile> profileWrapper = Wrappers.<Profile>lambdaQuery().orderByAsc(Profile::getId);
-
+        // get all profiles which has blocked current profile
         LambdaQueryWrapper<BlockRelationship> blockWrapper = Wrappers.<BlockRelationship>lambdaQuery().orderByAsc(BlockRelationship::getId);
         blockWrapper.like(BlockRelationship::getProfileid, profileID).or().like(BlockRelationship::getBlockid, profileID);
         List<BlockRelationship> blockResult = blockRelationshipMapper.selectList(blockWrapper);
 
+        // remove all profile which has been the friend of current profile
         boolean isFirst = true;
         Integer target = null;
         //get
@@ -235,7 +241,7 @@ public class ProfileController {
                 profileWrapper.and(i -> i.notLike(Profile::getId, res));
             }
         }
-
+        // remove all profiles which are blocked by current profile, or blocked current user
         for (BlockRelationship f : blockResult){
             if (!Objects.equals(f.getProfileid(), profileID)){
                 target = f.getProfileid();
@@ -279,15 +285,16 @@ public class ProfileController {
     }
 
 
-    @DeleteMapping("/friendDelete") //@RequestBody Profile profile
+    @DeleteMapping("/friendDelete") //delete your friend according to profile id
     public Result<?> friendDelete(@RequestBody RequestForm requestForm) {
         Integer profileID = requestForm.getProfileID();
         Integer targetID = requestForm.getTargetID();
-
+        // build query
         LambdaQueryWrapper<FriendRelationship> wrapper = Wrappers.<FriendRelationship>lambdaQuery().orderByAsc(FriendRelationship::getId);
 
         wrapper.and(i -> i.like(FriendRelationship::getProfileid1, profileID).like(FriendRelationship::getProfileid2, targetID)).
                 or(j -> j.and(i -> i.like(FriendRelationship::getProfileid2, profileID).like(FriendRelationship::getProfileid1, targetID)));
+        // get result
         List<FriendRelationship> result = friendRelationshipMapper.selectList(wrapper);
         if (result.size() != 1){
             return Result.error(Constants.CODE_416, Constants.CODE_416_MESSAGE);
@@ -342,13 +349,13 @@ public class ProfileController {
     }
 
     @GetMapping("/friendsRequest")
-    public Result<?> getFriendsRequest(@RequestParam Integer profileID){
+    public Result<?> getFriendsRequest(@RequestParam Integer profileID){ //get all friend request which send to target profile id
         if (profileID == null){
             return Result.error(Constants.CODE_415, Constants.CODE_415_MESSAGE);
         }
 
         LambdaQueryWrapper<FriendRelationship> wrapper = Wrappers.<FriendRelationship>lambdaQuery().orderByAsc(FriendRelationship::getId);
-
+        // relationship state is 0 means it needs to be accepted by request receiver
         wrapper.like(FriendRelationship::getProfileid2, profileID).eq(FriendRelationship::getState, 0);
         List<FriendRelationship> result = friendRelationshipMapper.selectList(wrapper);
 
@@ -362,7 +369,7 @@ public class ProfileController {
             }else {
                 target = f.getProfileid2();
             }
-            if (isFirst){
+            if (isFirst){ //first own special query format
                 profileWrapper.like(Profile::getId, target);
                 isFirst = false;
             }else{
@@ -379,7 +386,7 @@ public class ProfileController {
         return Result.success(friendsCollection);
     }
 
-    @PostMapping("/blockUser")
+    @PostMapping("/blockUser") //build block relationship
     public Result<?> blockUser(@RequestBody RequestForm requestForm){
 
         Integer profileID = requestForm.getProfileID();
@@ -390,7 +397,7 @@ public class ProfileController {
         wrapper.and(i -> i.like(FriendRelationship::getProfileid1, profileID).like(FriendRelationship::getProfileid2, targetID)).
                 or(j -> j.and(i -> i.like(FriendRelationship::getProfileid2, profileID).like(FriendRelationship::getProfileid1, targetID)));
         List<FriendRelationship> result = friendRelationshipMapper.selectList(wrapper);
-        if (result.size() != 0){
+        if (result.size() != 0){ // block a profile would delete friend relationship first if they are friends
             LambdaQueryWrapper<FriendRelationship> deleteWrapper = Wrappers.<FriendRelationship>lambdaQuery().orderByAsc(FriendRelationship::getId);
 
             deleteWrapper.and(i -> i.like(FriendRelationship::getProfileid1, profileID).like(FriendRelationship::getProfileid2, targetID)).
@@ -401,7 +408,7 @@ public class ProfileController {
             }
             friendRelationshipMapper.deleteById(deleteResult.get(0).getId());
         }
-        BlockRelationship blockRelationship = new BlockRelationship();
+        BlockRelationship blockRelationship = new BlockRelationship(); //build block relationship
         blockRelationship.setProfileid(profileID);
         blockRelationship.setBlockid(targetID);
         blockRelationshipMapper.insert(blockRelationship);
@@ -410,7 +417,7 @@ public class ProfileController {
         return Result.success();
     }
 
-    @DeleteMapping("/unBlock") //@RequestBody Profile profile
+    @DeleteMapping("/unBlock") //unblock target profile
     public Result<?> unBlock(@RequestBody RequestForm requestForm) {
         Integer profileID = requestForm.getProfileID();
         Integer targetID = requestForm.getTargetID();
@@ -427,7 +434,7 @@ public class ProfileController {
         return Result.success();
     }
 
-    @GetMapping("/blockList")
+    @GetMapping("/blockList") // get block relationship which belong to current profile
     public Result<?> getBlockList(@RequestParam Integer profileID){
         if (profileID == null){
             return Result.error(Constants.CODE_415, Constants.CODE_415_MESSAGE);
@@ -460,7 +467,7 @@ public class ProfileController {
         return Result.success(blockCollection);
     }
 
-    @PutMapping("/updatePrivacy")
+    @PutMapping("/updatePrivacy") //change privacy setting
     public Result<?> updatePrivacy(@RequestBody RequestForm requestForm) {
 
         Integer profileID = requestForm.getProfileID();
@@ -473,7 +480,7 @@ public class ProfileController {
         Profile profile;
         if (result.size() != 1) {
             return Result.error(Constants.CODE_416, Constants.CODE_416_MESSAGE);
-        } else {
+        } else { // Reverse Privacy Settings
             profile = result.get(0);
             int privacy = profile.getPrivacy();
             if (privacy == 1) {
@@ -481,6 +488,28 @@ public class ProfileController {
             } else {
                 profile.setPrivacy(1);
             }
+            profileMapper.updateById(profile);
+        }
+
+        return Result.success(profile);
+    }
+
+    @PutMapping("/oncall")
+    public Result<?> updateOncall(@RequestBody RequestForm requestForm) {
+
+        Integer profileID = requestForm.getProfileID();
+        Integer state = requestForm.getTargetID();
+        //checking for request exist
+        LambdaQueryWrapper<Profile> wrapper = Wrappers.<Profile>lambdaQuery().orderByAsc(Profile::getId);
+
+        wrapper.like(Profile::getId, profileID);
+        List<Profile> result = profileMapper.selectList(wrapper);
+        Profile profile;
+        if (result.size() != 1) {
+            return Result.error(Constants.CODE_416, Constants.CODE_416_MESSAGE);
+        } else {
+            profile = result.get(0);
+            profile.setOncall(state);
             profileMapper.updateById(profile);
         }
 

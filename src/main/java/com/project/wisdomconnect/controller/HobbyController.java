@@ -28,7 +28,7 @@ public class HobbyController {
     @Resource
     HobbyRelationshipMapper hobbyRelationshipMapper;
 
-    @GetMapping("/page")
+    @GetMapping("/page") //get all hobbies
     public Result<?> findPage(@RequestParam(defaultValue = "1") Integer pageNum,
                               @RequestParam(defaultValue = "10") Integer pageSize,
                               @RequestParam(defaultValue = "") String query){
@@ -41,7 +41,7 @@ public class HobbyController {
         return Result.success(hobbyPage);
     }
 
-    @PostMapping("/create")
+    @PostMapping("/create") //create a new hobby
     public Result<?> save(@RequestBody Hobby hobby){
         User user = TokenUtils.getUser();
         if (hobby.getLevel() == 2){
@@ -59,7 +59,7 @@ public class HobbyController {
 
     }
 
-    @PutMapping
+    @PutMapping //update hobby information
     public Result<?> update(@RequestBody Hobby hobby) {
         hobbyMapper.updateById(hobby);
         return Result.success();
@@ -71,7 +71,7 @@ public class HobbyController {
         return Result.success();
     }
 
-    @GetMapping("/hobbyList")
+    @GetMapping("/hobbyList") //get all target profile's hobbies
     public Result<?> getHobbyList(@RequestParam Integer profileID){
         if (profileID == null){
             return Result.error(Constants.CODE_415, Constants.CODE_415_MESSAGE);
@@ -104,7 +104,7 @@ public class HobbyController {
         return Result.success(hobbyCollection);
     }
 
-    @GetMapping("/randomHobbies")
+    @GetMapping("/randomHobbies") //get 3 random hobby
     public Result<?> getRandomHobbies(@RequestParam Integer profileID){
         if (profileID == null){
             return Result.error(Constants.CODE_415, Constants.CODE_415_MESSAGE);
@@ -117,7 +117,7 @@ public class HobbyController {
 
         boolean isFirst = true;
         Integer target = null;
-        //get
+        //get new hobby which not belong to you
         LambdaQueryWrapper<Hobby> hobbyWrapper = Wrappers.<Hobby>lambdaQuery().orderByAsc(Hobby::getId);
         for (HobbyRelationship f : result){
             target = f.getHobbyid();
@@ -156,7 +156,7 @@ public class HobbyController {
         return Result.success(randomHobbyCollection);
     }
 
-    @PostMapping("/addHobby")
+    @PostMapping("/addHobby") // build a hobby relationship between profile and hobby
     public Result<?> addFriend(@RequestBody RequestForm requestForm){
 
         Integer profileID = requestForm.getProfileID();
@@ -178,7 +178,7 @@ public class HobbyController {
         return Result.success();
     }
 
-    @DeleteMapping("/hobbyDelete") //@RequestBody Profile profile
+    @DeleteMapping("/hobbyDelete") //delete hobby relationship
     public Result<?> hobbyDelete(@RequestBody RequestForm requestForm) {
         Integer profileID = requestForm.getProfileID();
         Integer targetID = requestForm.getTargetID();

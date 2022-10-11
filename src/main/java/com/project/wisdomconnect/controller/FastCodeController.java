@@ -88,7 +88,7 @@ public class FastCodeController {
         insertFastCode.setName(fastCode.getName());
         insertFastCode.setAddress(fastCode.getAddress());
         insertFastCode.setRole("facility");
-
+        // build md5 for identify facility
         String md5 = SecureUtil.md5(fastCode.getName() + fastCode.getEmail() + fastCode.getAddress() + fastCode.getAbn());
         List<FastCode> findcode = fastCodeMapper.selectList(Wrappers.<FastCode>lambdaQuery().eq(FastCode::getMd5, md5));
         if (findcode.size() != 0) {
@@ -101,7 +101,7 @@ public class FastCodeController {
         }
 
         insertFastCode.setEmail(fastCode.getEmail());
-
+        // email manager there is a new facility fast code application need to be resolved
         fastCodeMapper.insert(insertFastCode);
         String[] reveiver = new String[1];
         reveiver[0] = "qian980730@gmail.com";
@@ -112,7 +112,7 @@ public class FastCodeController {
     }
 
     //http://127.0.0.1:9090/user?pageNum=1&pageSize=1&query=
-    @GetMapping("/page")
+    @GetMapping("/page") //get all fast code
     public Result<?> findPage(@RequestParam(defaultValue = "1") Integer pageNum,
                               @RequestParam(defaultValue = "10") Integer pageSize,
                               @RequestParam(defaultValue = "") String query){

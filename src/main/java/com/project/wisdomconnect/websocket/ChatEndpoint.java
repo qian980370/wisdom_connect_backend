@@ -74,7 +74,7 @@ public class ChatEndpoint {
 
 
     }
-
+    // broadcast to online users, their friend is online
     private void broadcastOnline(Integer profileID) throws IOException {
         LambdaQueryWrapper<Profile> profileWrapper = Wrappers.<Profile>lambdaQuery().orderByAsc(Profile::getId);
         profileWrapper.like(Profile::getId, profileID);
@@ -161,7 +161,7 @@ public class ChatEndpoint {
             }
         }
     }
-
+    // when user leave confernce room or refuse video call request, update profile's oncall state and send data dirty notificaiton to profile's friend
     private void broadcastOffCall(Integer profileID) throws IOException {
 
         LambdaQueryWrapper<Profile> profileWrapper = Wrappers.<Profile>lambdaQuery().orderByAsc(Profile::getId);
@@ -338,12 +338,12 @@ public class ChatEndpoint {
 
     }
 
-    @OnClose
+    @OnClose //close websocket connection and broadcast offline notfication to profile's friend
     public void onClose(@PathParam("profileID") String profileID) throws IOException {
         log.info("close session {}", profileID);
-
-        broadcastOffline(Integer.valueOf(profileID));
         onlineSessions.remove(Integer.valueOf(profileID));
+        broadcastOffline(Integer.valueOf(profileID));
+
     }
 
     public Map<String, String> transferMessage(String message){

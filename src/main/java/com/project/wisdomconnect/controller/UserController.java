@@ -39,7 +39,9 @@ public class UserController {
 
     @PostMapping
     public boolean save(@RequestBody User user){
+        // set registration time
         user.setRegisterTime(TimeGetter.getCurrenTime());
+        // insert new user or update user information in suer service
         return userService.saveUser(user);
 
     }
@@ -53,7 +55,7 @@ public class UserController {
         if (StrUtil.isBlank(username) || StrUtil.isBlank(password)){
             return Result.error(Constants.CODE_400, Constants.CODE_400_MESSAGE);
         }
-
+        //according to username, password get user detail information
         User user;
 
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -70,8 +72,9 @@ public class UserController {
 //        if (!Objects.equals(user.getRole(), "manager")){
 //            return Result.error(Constants.CODE_401, Constants.CODE_401_MESSAGE);
 //        }
-
+        // login and build token
         UserDTO dto = userService.login(userDTO);
+        // remove password before reply message to client
         dto.setPassword(null);
         return Result.success(dto);
     }
@@ -108,6 +111,7 @@ public class UserController {
         return Result.success();
     }
 
+    //delet a user by id
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Long id) {
         userMapper.deleteById(id);
